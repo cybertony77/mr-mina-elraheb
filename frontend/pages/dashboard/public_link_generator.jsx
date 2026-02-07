@@ -5,7 +5,7 @@ import Title from '../../components/Title';
 import { useStudents } from '../../lib/api/students';
 
 export default function GenerateLink() {
-  const systemName = 'Mr. Mina El-Raheb Attendance System';
+  const systemName = 'Mr. Mina El-Rahb Attendance System';
   const [studentId, setStudentId] = useState('');
   const [generatedLink, setGeneratedLink] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
