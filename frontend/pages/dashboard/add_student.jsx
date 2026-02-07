@@ -32,6 +32,29 @@ export default function AddStudent() {
   const [idError, setIdError] = useState("");
   const [idChecking, setIdChecking] = useState(false);
   const [idValid, setIdValid] = useState(false);
+  const [withPhysicalCard, setWithPhysicalCard] = useState(true); // Default to true for backward compatibility
+  const [configLoading, setConfigLoading] = useState(true);
+  
+  // Fetch config on mount
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          setWithPhysicalCard(config.WITH_PHISICAL_CARD);
+        }
+      } catch (error) {
+        console.error('Failed to load config:', error);
+        // Default to true if config fails to load
+        setWithPhysicalCard(true);
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+    fetchConfig();
+  }, []);
+
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(""), 5000);
@@ -76,8 +99,16 @@ export default function AddStudent() {
     };
   }, [openDropdown]);
 
-  // Debounced ID checking
+  // Debounced ID checking (only if WITH_PHISICAL_CARD is true)
   useEffect(() => {
+    if (!withPhysicalCard) {
+      // Clear ID validation state when physical card is disabled
+      setIdError('');
+      setIdValid(false);
+      setIdChecking(false);
+      return;
+    }
+    
     const timer = setTimeout(() => {
       if (form.id && form.id.trim() !== '') {
         checkStudentId(form.id);
@@ -85,7 +116,7 @@ export default function AddStudent() {
     }, 500); // Check after 500ms of no typing
 
     return () => clearTimeout(timer);
-  }, [form.id]);
+  }, [form.id, withPhysicalCard]);
 
   const router = useRouter();
   
@@ -139,15 +170,17 @@ export default function AddStudent() {
     setError("");
     setSuccess(false);
     
-    // Validate custom ID
-    if (!form.id || form.id.trim() === '') {
-      setError("Student ID is required");
-      return;
-    }
-    
-    if (!idValid) {
-      setError("Please enter a valid, unused student ID");
-      return;
+    // Validate custom ID only if WITH_PHISICAL_CARD is true
+    if (withPhysicalCard) {
+      if (!form.id || form.id.trim() === '') {
+        setError("Student ID is required");
+        return;
+      }
+      
+      if (!idValid) {
+        setError("Please enter a valid, unused student ID");
+        return;
+      }
     }
     
     // Validate phone numbers
@@ -184,11 +217,18 @@ export default function AddStudent() {
     delete payload.comment;
     delete payload.parentsPhone;
     
+    // Only include ID in payload if WITH_PHISICAL_CARD is true
+    // If false, the API will auto-generate the ID
+    if (!withPhysicalCard) {
+      delete payload.id;
+    }
+    
     createStudentMutation.mutate(payload, {
       onSuccess: (data) => {
         setSuccess(true);
-        setSuccessMessage(`✅ Student added successfully! ID: ${form.id}`); // Use custom ID
-        setNewId(form.id); // Use custom ID
+        const studentId = withPhysicalCard ? form.id : (data.id || data.newId || 'N/A');
+        setSuccessMessage(`✅ Student added successfully! ID: ${studentId}`);
+        setNewId(studentId.toString()); // Use the ID from response or form
         setShowQRButton(true); // Show QR button after successful submission
       },
       onError: (err) => {
@@ -354,38 +394,40 @@ export default function AddStudent() {
         </Title>
         <div className="form-container">
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Student ID <span style={{color: 'red'}}>*</span></label>
-              <input
-                className={`form-input ${idError ? 'error-border' : ''}`}
-                name="id"
-                placeholder="Enter student ID"
-                value={form.id}
-                onChange={handleChange}
-                required
-                autocomplete="off"
-              />
-              {/* ID availability feedback */}
-              {form.id && (
-                <div>
-                  {idChecking && (
-                    <div className="id-feedback checking">
-                      🔍 Checking availability...
-                    </div>
-                  )}
-                  {!idChecking && idError && (
-                    <div className="id-feedback taken">
-                      ❌ {idError}
-                    </div>
-                  )}
-                  {!idChecking && idValid && !idError && (
-                    <div className="id-feedback available">
-                      ✅ This ID is available
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            {withPhysicalCard && (
+              <div className="form-group">
+                <label>Student ID <span style={{color: 'red'}}>*</span></label>
+                <input
+                  className={`form-input ${idError ? 'error-border' : ''}`}
+                  name="id"
+                  placeholder="Enter student ID"
+                  value={form.id}
+                  onChange={handleChange}
+                  required
+                  autocomplete="off"
+                />
+                {/* ID availability feedback */}
+                {form.id && (
+                  <div>
+                    {idChecking && (
+                      <div className="id-feedback checking">
+                        🔍 Checking availability...
+                      </div>
+                    )}
+                    {!idChecking && idError && (
+                      <div className="id-feedback taken">
+                        ❌ {idError}
+                      </div>
+                    )}
+                    {!idChecking && idValid && !idError && (
+                      <div className="id-feedback available">
+                        ✅ This ID is available
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             <div className="form-group">
               <label>Full Name <span style={{color: 'red'}}>*</span></label>
               <input
@@ -510,7 +552,7 @@ export default function AddStudent() {
           </div>
             <button 
               type="submit" 
-              disabled={createStudentMutation.isPending || idChecking || (idError && !idValid)} 
+              disabled={createStudentMutation.isPending || configLoading || (withPhysicalCard && (idChecking || (idError && !idValid)))} 
               className="submit-btn"
             >
               {createStudentMutation.isPending ? "Adding..." : "Add Student"}

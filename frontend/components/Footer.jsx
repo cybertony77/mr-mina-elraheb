@@ -14,7 +14,7 @@ export default function Footer() {
       marginTop: 'auto',
       flexShrink: 0
     }}>
-      Copyright &copy; {year} - Mr. Mina El-Raheb
+      Copyright &copy; {year} - Mr. Mina El-Rahb
 
       <style jsx>{`
         @media (max-width: 768px) {

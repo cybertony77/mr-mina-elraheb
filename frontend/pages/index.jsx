@@ -132,7 +132,7 @@ export default function Login() {
           } else if (err.response?.data?.error === 'wrong_password') {
             setPasswordError("Wrong password");
           } else if (err.response?.data?.error === 'account_deactivated') {
-            setMessage("Access unavailable: This account is deactivated. Please contact Mr. Mina El-Raheb (admin) or Tony Joseph (developer).");
+            setMessage("Access unavailable: This account is deactivated. Please contact Mr. Mina El-Rahb (admin) or Tony Joseph (developer).");
           } else if (err.response?.data?.error === 'subscription_inactive' || err.response?.data?.error === 'subscription_expired') {
             setMessage(err.response?.data?.message || "Access unavailable: Subscription expired. Please contact Tony Joseph (developer) to renew.");
           } else {
@@ -374,7 +374,7 @@ export default function Login() {
                   style={{ color: '#303b4f', cursor: 'pointer', fontWeight: 500, textDecoration: 'underline', fontSize: '0.85rem' }}
                   onClick={e => { 
                     e.preventDefault(); 
-                    setForgotMsg('Contact Mr. Mina El-Raheb (admin) or Tony Joseph (developer)'); 
+                    setForgotMsg('Contact Mr. Mina El-Rahb (admin) or Tony Joseph (developer)'); 
                   }}
                 >
                   Forgot your password?
@@ -431,7 +431,7 @@ export default function Login() {
                 <span style={{ fontSize: 20, flexShrink: 0 }}>❗</span> 
                 {forgotMsg ? (
                   <span>
-                    Contact Mr. Mina El-Raheb (admin) or Tony Joseph (
+                    Contact Mr. Mina El-Rahb (admin) or Tony Joseph (
                       <a
                         href="/contact_developer"
                         style={{ 

@@ -40,7 +40,7 @@ export default function Dashboard() {
               background: "transparent"
             }}
           />
-              <h1 style={{ margin: 0, color: "#ffffff" }}>Mr. Mina El-Raheb Dashboard</h1>
+              <h1 style={{ margin: 0, color: "#ffffff" }}>Mr. Mina El-Rahb Dashboard</h1>
         </div>
         
         {/* Access Denied Message */}

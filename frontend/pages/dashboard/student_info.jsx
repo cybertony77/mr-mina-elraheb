@@ -653,7 +653,7 @@ export default function StudentInfo() {
               margin: 0,
               textShadow: "0 2px 4px rgba(0,0,0,0.2)"
             }}>
-              Welcome to Mr. Mina El-Raheb App
+              Welcome to Mr. Mina El-Rahb App
             </h2>
           </div>
         )}

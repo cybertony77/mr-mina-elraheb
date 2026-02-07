@@ -1,7 +1,7 @@
 {
-  "name": "Mr. Mina El-Raheb Attendance System",
-  "short_name": "Mr. Mina El-Raheb Attendance System",
-  "description": "Attendance management system for Mr. Mina El-Raheb students",
+  "name": "Mr. Mina El-Rahb Attendance System",
+  "short_name": "Mr. Mina El-Rahb Attendance System",
+  "description": "Attendance management system for Mr. Mina El-Rahb students",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
