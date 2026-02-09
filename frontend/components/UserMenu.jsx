@@ -272,10 +272,6 @@ export default function UserMenu() {
                 <Image src="/settings.svg" alt="Settings" width={20} height={20} style={{ marginRight: '8px', transform: "translateY(3px)" }} />
                 Manage Assistants
               </button>
-              <button style={menuBtnStyle} onClick={handlePublicLinkGenerator}>
-                <Image src="/link.svg" alt="Link" width={20} height={20} style={{ marginRight: '8px', transform: "translateY(3px)" }} />
-                Public Link Generator
-              </button>
             </>
           )}
           {userData.role === 'developer' && (
@@ -284,6 +280,10 @@ export default function UserMenu() {
               Subscription Dashboard
             </button>
           )}
+          <button style={menuBtnStyle} onClick={handlePublicLinkGenerator}>
+            <Image src="/link.svg" alt="Link" width={20} height={20} style={{ marginRight: '8px', transform: "translateY(3px)" }} />
+            Public Link Generator
+          </button>
           <button style={menuBtnStyle} onClick={handleContactDeveloper}>
             <Image src="/message2.svg" alt="Message" width={20} height={20} style={{ marginRight: '8px', transform: "translateY(3px)" }} />
             Contact Developer
