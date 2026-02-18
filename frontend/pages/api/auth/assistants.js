@@ -149,17 +149,20 @@ export default async function handler(req, res) {
       res.json(mappedAssistants);
       }
     } else if (req.method === 'POST') {
-      // Create new assistant
       const { id, name, phone, password, role, account_state } = req.body;
       if (!id || !name || !phone || !password || !role) {
         return res.status(400).json({ error: 'All fields are required' });
       }
-      const exists = await db.collection('assistants').findOne({ id });
+      if (typeof id !== 'string' || typeof name !== 'string' || typeof phone !== 'string' || typeof password !== 'string' || typeof role !== 'string') {
+        return res.status(400).json({ error: 'Invalid field types' });
+      }
+      const safeId = String(id).replace(/[$]/g, '');
+      const exists = await db.collection('assistants').findOne({ id: safeId });
       if (exists) {
         return res.status(409).json({ error: 'Assistant ID already exists' });
       }
       const hashedPassword = await bcrypt.hash(password, 10);
-      await db.collection('assistants').insertOne({ id, name, phone, password: hashedPassword, role, account_state: account_state || "Activated" });
+      await db.collection('assistants').insertOne({ id: safeId, name: String(name).replace(/[$]/g, ''), phone: String(phone).replace(/[$]/g, ''), password: hashedPassword, role: String(role).replace(/[$]/g, ''), account_state: (typeof account_state === 'string' ? account_state : "Activated") });
       res.json({ success: true });
     } else {
       res.status(405).json({ error: 'Method not allowed' });

@@ -48,65 +48,63 @@ async function requireAdmin(req) {
 
 export default async function handler(req, res) {
   const { id } = req.query;
+  if (typeof id !== 'string') {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
+  const safeQueryId = String(id).replace(/[$]/g, '');
   let client;
   try {
     client = await MongoClient.connect(MONGO_URI);
     const db = client.db(DB_NAME);
     
-    // Verify admin access
     const admin = await requireAdmin(req);
     
     if (req.method === 'GET') {
-      // Get assistant by ID (exclude password for security)
       const assistant = await db.collection('assistants')
-        .findOne({ id }, { projection: { password: 0 } }); // Exclude password field
+        .findOne({ id: safeQueryId }, { projection: { password: 0 } });
       if (!assistant) return res.status(404).json({ error: 'Assistant not found' });
       res.json({ 
         ...assistant,
-        account_state: assistant.account_state || "Activated" // Default to Activated
+        account_state: assistant.account_state || "Activated"
       });
     } else if (req.method === 'PUT') {
-      // Edit assistant - handle partial updates properly
       const { id: newId, name, phone, password, role, account_state } = req.body;
       
-      // Build update object with only defined values (not null or undefined)
       const update = {};
       
-      if (name !== undefined && name !== null && name.trim() !== '') {
-        update.name = name;
+      if (name !== undefined && name !== null && typeof name === 'string' && name.trim() !== '') {
+        update.name = name.replace(/[$]/g, '');
       }
-      if (phone !== undefined && phone !== null && phone.trim() !== '') {
-        update.phone = phone;
+      if (phone !== undefined && phone !== null && typeof phone === 'string' && phone.trim() !== '') {
+        update.phone = phone.replace(/[$]/g, '');
       }
-      if (role !== undefined && role !== null && role.trim() !== '') {
-        update.role = role;
+      if (role !== undefined && role !== null && typeof role === 'string' && role.trim() !== '') {
+        update.role = role.replace(/[$]/g, '');
       }
-      if (password !== undefined && password !== null && password.trim() !== '') {
+      if (password !== undefined && password !== null && typeof password === 'string' && password.trim() !== '') {
         update.password = await bcrypt.hash(password, 10);
       }
-      if (newId && newId !== id && newId.trim() !== '') {
-        // Check for unique new ID
-        const exists = await db.collection('assistants').findOne({ id: newId });
+      if (newId && typeof newId === 'string' && newId !== safeQueryId && newId.trim() !== '') {
+        const safeNewId = String(newId).replace(/[$]/g, '');
+        const exists = await db.collection('assistants').findOne({ id: safeNewId });
         if (exists) {
           return res.status(409).json({ error: 'Assistant ID already exists' });
         }
-        update.id = newId;
+        update.id = safeNewId;
       }
-      if (account_state !== undefined && account_state !== null) {
+      if (account_state !== undefined && account_state !== null && typeof account_state === 'string') {
         update.account_state = account_state;
       }
       
-      // Only proceed if there are fields to update
       if (Object.keys(update).length === 0) {
         return res.status(400).json({ error: 'No valid fields to update' });
       }
       
-      const result = await db.collection('assistants').updateOne({ id }, { $set: update });
+      const result = await db.collection('assistants').updateOne({ id: safeQueryId }, { $set: update });
       if (result.matchedCount === 0) return res.status(404).json({ error: 'Assistant not found' });
       res.json({ success: true });
     } else if (req.method === 'DELETE') {
-      // Delete assistant
-      const result = await db.collection('assistants').deleteOne({ id });
+      const result = await db.collection('assistants').deleteOne({ id: safeQueryId });
       if (result.deletedCount === 0) return res.status(404).json({ error: 'Assistant not found' });
       res.json({ success: true });
     } else {
